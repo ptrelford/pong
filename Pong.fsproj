@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>$(Name)</AssemblyName>
     <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
     <FileAlignment>512</FileAlignment>
     <AllowCrossTargeting>true</AllowCrossTargeting>
@@ -30,13 +30,14 @@
     <TestPageFileName>TestPage.html</TestPageFileName>
     <SupportedCultures>
     </SupportedCultures>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin</OutputPath>
-    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SILVERLIGHT</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -54,11 +55,17 @@
     <Compile Include="Pong.fs" />
     <Compile Include="App.fs" />
     <Content Include="AppManifest.xml" />
+    <Resource Include="GameControl.xaml" />
+    <Content Include="pongblipf-5.wav" />
+    <Content Include="pongblipa5.wav" />
+    <Content Include="pongblipa5.mp3" />
+    <Content Include="pongblipf-5.mp3" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
       <HintPath>$(ProgramFiles)\Microsoft F#\Silverlight\Libraries\Client\$(SilverlightVersion)\FSharp.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Xna.Framework" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

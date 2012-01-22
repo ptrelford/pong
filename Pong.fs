@@ -4,10 +4,14 @@ module Play
 #endif
 
 open System
+open System.Windows
 open System.Windows.Controls
 open System.Windows.Input
 open System.Windows.Media
 open System.Windows.Shapes
+#if XNA
+open Microsoft.Xna.Framework.Audio
+#endif
 // [snippet:Pong game]
 let width, height = 512,384
 let move(shape,x,y) = Canvas.SetLeft(shape,float x); Canvas.SetTop(shape,float y)
@@ -57,7 +61,7 @@ type Pad(keys:Keys,up,down,x,y) =
         if keys.IsKeyDown down then y := !y + 4
         move(shape,x,!y)
 
-type Ball(blocks:Rectangle list, win:Event<_>) =
+type Ball(blocks:Rectangle list, beep1, beep2, win:Event<_>) =
     let bx, by, bdx, bdy = ref (width/2), ref (height/4), ref 1, ref 1
     let shape = rectangle(!bx,!by,10,10)
     let checkBlocks () =
@@ -67,6 +71,7 @@ type Ball(blocks:Rectangle list, win:Event<_>) =
             if !bx >= x && !bx < x + w && !by >= y && !by < y + h then
                 if w > h then bdy := - !bdy else bdx := - !bdx 
                 by := !by + !bdy*2; bx := !bx + !bdx*2
+                if !bdx < 0 then beep1() else beep2()
     member ball.Shape = shape
     member ball.Reset() = bx := width/2; by := height/2; move(shape,!bx,!by)
     member ball.Update() =
@@ -78,12 +83,29 @@ type Ball(blocks:Rectangle list, win:Event<_>) =
 
 type GameControl() as control=
     inherit UserControl(Width=float width, Height=float height, IsTabStop=true)
+    let canvas = new Canvas(Background = SolidColorBrush Colors.Black)  
+    #if XNA
+    let loadSound name = 
+        let x = Application.GetResourceStream(Uri(name, UriKind.RelativeOrAbsolute))
+        x.Stream|> SoundEffect.FromStream
+    let playSound (stream:SoundEffect) () = 
+        stream.CreateInstance().Play() |> ignore
+    let beep1, beep2 = loadSound "pongblipa5.wav", loadSound "pongblipf-5.wav"
+    #else
+    let uri = Uri("/Pong;component/GameControl.xaml", UriKind.Relative)
+    do  Application.LoadComponent(control, uri)
+    let loadSound path =
+        let sound = MediaElement(AutoPlay=false, Source=Uri(path,UriKind.Relative))    
+        canvas.Children.Add sound
+        sound
+    let playSound (sound:MediaElement) () = sound.Stop(); sound.Play()
+    let beep1, beep2 = loadSound "/pongblipa5.mp3", loadSound "/pongblipf-5.mp3"
+    #endif 
     let win = Event<_>()
-    let keys = Keys(control)
-    let canvas = new Canvas(Background = SolidColorBrush Colors.Black)
+    let keys = Keys(control)     
     let top, bottom = rectangle(0,10,width,10), rectangle(0,height-20,width,10)
-    let pad1, pad2 = Pad(keys,Key.Q,Key.A,10,60), Pad(keys,Key.P,Key.L,width-20,120)
-    let ball = Ball([top;bottom;pad1.Shape;pad2.Shape], win)
+    let pad1, pad2 = Pad(keys,Key.Q,Key.A,10,60), Pad(keys,Key.P,Key.L,width-20,120) 
+    let ball = Ball([top;bottom;pad1.Shape;pad2.Shape], playSound beep1, playSound beep2, win)
     let (+.) (container:Panel) item = container.Children.Add item; container
     do  base.Content <- canvas+.top+.bottom+.pad1.Shape+.pad2.Shape+.ball.Shape
     let update () = pad1.Update(); pad2.Update(); ball.Update()
